@@ -53,37 +53,41 @@ class Warehouse:
 
 warehouse = Warehouse()
 
-product1 = Product("Samsung phone", "M.Video", 25000)
-product2 = Product("HP laptop", "DNS", 45000)
-product3 = Product("Lenovo tablet", "Eldorado", 15000)
+product1 = Product("Samsung phone", "5 element", 2500)
+product2 = Product("HP laptop", "DNS", 4500)
+product3 = Product("Lenovo tablet", "MTS", 1500)
 
 warehouse.add_product(product1)
 warehouse.add_product(product2)
 warehouse.add_product(product3)
 
-print(warehouse.get_product_by_index(1))
-print(warehouse.get_product_by_name("Samsung phone"))
+print("Product by index: ", warehouse.get_product_by_index(1))
+print("Product by name: ", warehouse.get_product_by_name("Samsung phone"), "\n")
 
+print("Sort by name:")
 warehouse.sort_by_name()
 for product in warehouse._Warehouse__products:
     print(product)
 
+print("Sort by store:")
 warehouse.sort_by_store()
 for product in warehouse._Warehouse__products:
     print(product)
 
+print("Sort by price:")
 warehouse.sort_by_price()
 for product in warehouse._Warehouse__products:
     print(product)
 
 warehouse2 = Warehouse()
 
-product4 = Product("Sony headphones", "Citilink", 5000)
-product5 = Product("Canon camera", "Photomag", 30000)
+product4 = Product("Sony headphones", "Citilink", 500)
+product5 = Product("Canon camera", "Photomag", 3000)
 
 warehouse2.add_product(product4)
 warehouse2.add_product(product5)
 
+print("Total price:")
 total_price = warehouse + warehouse2
 print(total_price)
 print("\n")
@@ -144,55 +148,78 @@ class Bus:
         self.max_seats = max_seats
         self.max_speed = max_speed
         self.passengers = []
+        self.free_seats = max_seats
+        self.seats = {i: None for i in range(1, max_seats+1)}
 
-    def contains(self, name):
+    def add_passenger(self, *names):
+        if len(names) > self.free_seats:
+            print("Not enough seats")
+            return
+        for name in names:
+            for seat, occupant in self.seats.items():
+                if occupant is None:
+                    self.seats[seat] = name
+                    self.free_seats -= 1
+                    self.passengers.append(name)
+                    break
+
+    def remove_passenger(self, *names):
+        for name in names:
+            for seat, occupant in self.seats.items():
+                if occupant == name:
+                    self.seats[seat] = None
+                    self.free_seats += 1
+                    self.passengers.remove(name)
+                    break
+
+    def increase_speed(self, value):
+        if self.speed + value > self.max_speed:
+            print("Can't exceed maximum speed")
+            return
+        self.speed += value
+
+    def decrease_speed(self, value):
+        if self.speed - value < 0:
+            print("Can't go below 0 speed")
+            return
+        self.speed -= value
+
+    def __contains__(self, name):
         return name in self.passengers
 
-    def iadd(self, name):
-        self.board_passenger(name)
+    def __iadd__(self, name):
+        self.add_passenger(name)
         return self
 
-    def isub(self, name):
-        self.disembark_passenger(name)
+    def __isub__(self, name):
+        self.remove_passenger(name)
         return self
 
-    def board_passenger(self, name):
-        if len(self.passengers) < self.max_seats:
-            self.passengers.append(name)
-        else:
-            print("No seats available")
 
-    def disembark_passenger(self, name):
-        if name in self.passengers:
-            self.passengers.remove(name)
-        else:
-            print(f"{name} is not on the bus")
-
-    def __str__(self):
-        return f"Bus with {len(self.passengers)} passengers"
-
-bus = Bus(60, 30, 100)
-
-bus.board_passenger("Alice", "Bob", "Charlie")
-print(bus.passengers)
-print(bus.seat_map)
-
-print("Alice" in bus)
-
-bus.disembark_passenger("Bob")
-print(bus.passengers)
-print(bus.seat_map)
-
+bus = Bus(50, 30, 80)
+print(bus.speed)  # 50
 bus.increase_speed(20)
-print(bus.speed)
-
+print(bus.speed)  # 70
+bus.increase_speed(15)  # Can't exceed maximum speed
+print(bus.speed)  # 70
 bus.decrease_speed(30)
-print(bus.speed)
+print(bus.speed)  # 40
 
-bus += "Dave"
-print(bus.passengers)
-print(bus.seat_map)
+print(bus.free_seats)  # 30
+bus.add_passenger("John", "Jane", "Jack")
+print(bus.free_seats)  # 27
+print(bus.passengers)  # ['John', 'Jane', 'Jack']
+print(bus.seats)  # {1: 'John', 2: 'Jane', 3: 'Jack', ...}
+bus.add_passenger("Mary", "Mark", "Mike")  # Not enough seats
+bus.remove_passenger("Jane", "Mike")
+print(bus.free_seats)  # 29
+print(bus.passengers)  # ['John', 'Jack', 'Mary', 'Mark']
+print(bus.seats)  # {1: 'John', 2: None, 3: 'Jack', ...}
 
-bus -= "Charlie"
-print(bus.passengers)
-print(bus.seat_map)
+print("John" in bus)  # True
+print("Jane" in bus)  # False
+
+bus += "Peter"
+print(bus.passengers)  # ['John', 'Jack', 'Mary', 'Mark', 'Peter']
+bus -= "Mark"
+print(bus.passengers)  # ['John', 'Jack', 'Mary', 'Peter']
