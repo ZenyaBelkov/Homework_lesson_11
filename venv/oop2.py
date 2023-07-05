@@ -165,9 +165,9 @@ class Bus:
 
     def remove_passenger(self, *names):
         for name in names:
-            for seat, occupant in self.seats.items():
+            for i, occupant in enumerate(self.seats):
                 if occupant == name:
-                    self.seats[seat] = None
+                    self.seats[i] = None
                     self.free_seats += 1
                     self.passengers.remove(name)
                     break
